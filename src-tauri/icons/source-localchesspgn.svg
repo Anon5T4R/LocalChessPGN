@@ -1,0 +1,15 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3a2a1c"/>
+      <stop offset="1" stop-color="#1c130c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="176" fill="url(#bg)"/>
+  <!-- silhueta simples de cavalo de xadrez -->
+  <g fill="#f3ead9">
+    <path d="M420 760h220l14-64c4-18-2-36-16-48l-30-25c14-10 22-27 20-45l-8-70c-4-36-24-68-55-88l-70-46c-24-16-54-19-81-8l-46 19c-20 8-33 27-33 48v18c0 16 9 30 23 37l31 15-52 46c-16 14-24 35-21 56l14 100c3 22 14 42 31 56z"/>
+    <circle cx="447" cy="452" r="16" fill="#1c130c"/>
+  </g>
+  <rect x="360" y="770" width="340" height="56" rx="14" fill="#f3ead9"/>
+</svg>
