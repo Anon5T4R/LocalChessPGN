@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Board from "./components/Board";
 import LibraryPanel from "./components/LibraryPanel";
 import MoveList from "./components/MoveList";
+import PlayModal from "./components/PlayModal";
 import SearchResults from "./components/SearchResults";
 import { inTauri } from "./lib/backend";
 import { DEV_SAMPLE_GAME } from "./lib/devFixture";
@@ -59,9 +60,22 @@ export default function App() {
   const initLibraryEvents = useStore((s) => s.initLibraryEvents);
   const searchResults = useStore((s) => s.searchResults);
   const searchCurrentPosition = useStore((s) => s.searchCurrentPosition);
+  const difficulties = useStore((s) => s.difficulties);
+  const initEngine = useStore((s) => s.initEngine);
+  const consulting = useStore((s) => s.consulting);
+  const consultResult = useStore((s) => s.consultResult);
+  const consultEngine = useStore((s) => s.consultEngine);
+  const playSuggestedMove = useStore((s) => s.playSuggestedMove);
+  const clearConsult = useStore((s) => s.clearConsult);
+  const playMode = useStore((s) => s.playMode);
+  const engineThinking = useStore((s) => s.engineThinking);
+  const engineStarting = useStore((s) => s.engineStarting);
+  const startPlaying = useStore((s) => s.startPlaying);
+  const stopPlaying = useStore((s) => s.stopPlaying);
 
   const locale = useLocale();
   const [theme, setTheme] = useState<Theme>(loadTheme);
+  const [playModalOpen, setPlayModalOpen] = useState(false);
 
   useEffect(() => {
     applyTheme(theme);
@@ -69,7 +83,8 @@ export default function App() {
 
   useEffect(() => {
     initLibraryEvents();
-  }, [initLibraryEvents]);
+    void initEngine();
+  }, [initLibraryEvents, initEngine]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -121,6 +136,16 @@ export default function App() {
           <button className={`btn small${libraryOpen ? " active" : ""}`} onClick={toggleLibrary} title={t("library.toggle")}>
             📚 {t("library.toggle")}
           </button>
+          {difficulties.length > 0 &&
+            (playMode ? (
+              <button className="btn small active" onClick={stopPlaying} title={t("play.stop")}>
+                🤖 {t("play.stop")}
+              </button>
+            ) : (
+              <button className="btn small" onClick={() => setPlayModalOpen(true)} title={t("play.toggle")}>
+                🤖 {t("play.toggle")}
+              </button>
+            ))}
           <button className="btn primary" onClick={() => void openPgn()}>
             + {t("topbar.open")}
           </button>
@@ -220,7 +245,38 @@ export default function App() {
                   <button className="btn small" title={t("search.button")} onClick={() => void searchCurrentPosition()}>
                     🔍 {t("search.button")}
                   </button>
+                  {difficulties.length > 0 && (
+                    <button className="btn small" disabled={consulting} title={t("engine.consult")} onClick={() => void consultEngine()}>
+                      🐟 {consulting ? t("engine.thinking") : t("engine.consult")}
+                    </button>
+                  )}
                 </div>
+
+                {playMode && (
+                  <div className="play-status">
+                    {t("play.playingAs", { color: t(playMode.playerColor === "w" ? "play.white" : "play.black") })}
+                    {engineThinking && <span className="play-thinking"> — {t("engine.thinking")}</span>}
+                  </div>
+                )}
+
+                {consultResult && (
+                  <div className="consult-strip">
+                    <span>
+                      {t("engine.suggestion")}: <strong>{consultResult.san}</strong>
+                      {consultResult.mateIn != null
+                        ? ` (#${consultResult.mateIn})`
+                        : consultResult.scoreCp != null
+                          ? ` (${consultResult.scoreCp > 0 ? "+" : ""}${(consultResult.scoreCp / 100).toFixed(2)})`
+                          : ""}
+                    </span>
+                    <button className="btn small primary" onClick={playSuggestedMove}>
+                      {t("engine.playSuggested")}
+                    </button>
+                    <button className="icon-btn" onClick={clearConsult} title={t("library.close")}>
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
               {searchResults ? (
                 <SearchResults />
@@ -233,6 +289,18 @@ export default function App() {
       </main>
 
       <LibraryPanel />
+
+      {playModalOpen && (
+        <PlayModal
+          difficulties={difficulties}
+          starting={engineStarting}
+          onClose={() => setPlayModalOpen(false)}
+          onStart={(color, difficultyId) => {
+            setPlayModalOpen(false);
+            void startPlaying(color, difficultyId);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -45,9 +45,17 @@ export function samePath(a: Path, b: Path): boolean {
   return a.length === b.length && a.every((v, i) => v === b[i]);
 }
 
-/** Ply do nó em `path` (ou do 1º lance a jogar, se `path` for `[]`). */
-export function plyAtPath(game: GameRecord, path: Path): number {
-  return path.length === 0 ? game.startPly : (nodeAtPath(game.root, path)?.ply ?? game.startPly);
+/** Ply que um lance NOVO recebe se for inserido a partir de `path` — 1º lance
+ *  da partida (`path` vazio) usa `startPly`; daí em diante é sempre pai+1,
+ *  igual ao Rust (`pgn.rs`: `Some(idx) => arena[idx].ply + 1, None =>
+ *  start_ply`). Achado usando errado (sem o +1): o lance novo saía com o
+ *  MESMO ply do pai, e a lista de lances mostrava "1. e4 1. e5" em vez de
+ *  "1. e4 1...e5" — só apareceu jogando de verdade (as fixtures de teste já
+ *  vinham com o ply certo calculado no Rust, então nenhum teste unitário
+ *  pegou isso). */
+export function nextPlyFrom(game: GameRecord, path: Path): number {
+  if (path.length === 0) return game.startPly;
+  return (nodeAtPath(game.root, path)?.ply ?? game.startPly) + 1;
 }
 
 /** Atualiza IMUTAVELMENTE o nó em `path` (recria só a espinha raiz→nó, o

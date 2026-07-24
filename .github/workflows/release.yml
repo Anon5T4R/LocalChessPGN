@@ -64,6 +64,15 @@ jobs:
       - name: Install JS deps
         run: npm ci
 
+      - name: Baixar Stockfish (3 variantes) — Windows
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File scripts/fetch-stockfish.ps1
+
+      - name: Baixar Stockfish (3 variantes) — Linux
+        if: matrix.platform == 'ubuntu-22.04'
+        run: bash scripts/fetch-stockfish.sh
+
       - name: Cargo.lock em dia (--locked)
         working-directory: src-tauri
         run: cargo fetch --locked
@@ -154,7 +163,9 @@ jobs:
 
           Leitor e editor de PGN 100% offline: tabuleiro, carregar `.pgn` e
           navegar a árvore de lances (linha principal + variantes, comentários
-          e anotações). Nada sai da sua máquina.
+          e anotações). Biblioteca de partidas com busca por posição, e
+          Stockfish embarcado — consulte a qualquer momento ou jogue contra
+          ele, com dificuldade. Nada sai da sua máquina.
 
           Este app é **GPL-3.0-or-later** (não MIT como o resto da suíte) —
           motivo em [README.md](https://github.com/Anon5T4R/LocalChessPGN#créditos-e-licença).

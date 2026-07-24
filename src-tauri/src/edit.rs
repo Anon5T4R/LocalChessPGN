@@ -10,7 +10,7 @@ use shakmaty::fen::Fen;
 use shakmaty::san::San;
 use shakmaty::{CastlingMode, Chess, EnPassantMode, File, Move, Position, Role, Square};
 
-fn position_from_fen(fen: &str) -> Result<Chess, String> {
+pub(crate) fn position_from_fen(fen: &str) -> Result<Chess, String> {
     Fen::from_ascii(fen.as_bytes())
         .map_err(|e| format!("FEN inválida: {e}"))?
         .into_position(CastlingMode::Standard)

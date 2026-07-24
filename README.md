@@ -7,22 +7,26 @@ Parte da suíte **Local/Taylor** de aplicativos offline-first.
 
 ## Estado
 
-**v0.3.0.** Leitor **e editor** de PGN: carrega um arquivo `.pgn` (um ou vários jogos), mostra o
-tabuleiro na posição de cada lance e deixa navegar a árvore inteira — lance principal e
-variantes, comentários e anotações (NAG) inclusos. Dá pra **jogar no próprio tabuleiro** (clique
-na peça, clique no destino destacado — com escolha de peça na promoção), **criar variantes** de
-verdade (um lance que já existe navega até ele; um lance novo vira variante), **anotar**
-(comentário + NAG por lance) e **salvar** de volta pro `.pgn` (gravação atômica).
+**v0.4.0 — escopo original completo.** Leitor **e editor** de PGN: carrega um arquivo `.pgn` (um
+ou vários jogos), mostra o tabuleiro na posição de cada lance e deixa navegar a árvore inteira —
+lance principal e variantes, comentários e anotações (NAG) inclusos. Dá pra **jogar no próprio
+tabuleiro** (clique na peça, clique no destino destacado — com escolha de peça na promoção),
+**criar variantes** de verdade (um lance que já existe navega até ele; um lance novo vira
+variante), **anotar** (comentário + NAG por lance) e **salvar** de volta pro `.pgn` (gravação
+atômica).
 
-Agora também tem **biblioteca**: aponte um ou mais arquivos `.pgn` e eles entram numa base
-persistente (SQLite local, nada embutido/baixado). Cada partida é indexada por **posição**
-(hash Zobrist compatível com Polyglot) — a qualquer momento dá pra **buscar "quem já passou por
-esta posição do tabuleiro"** e a busca acha por transposição de verdade (ordens de lance
-diferentes que chegam na mesma posição), não só por prefixo de movetext igual.
+Tem **biblioteca**: aponte um ou mais arquivos `.pgn` e eles entram numa base persistente
+(SQLite local, nada embutido/baixado). Cada partida é indexada por **posição** (hash Zobrist
+compatível com Polyglot) — a qualquer momento dá pra **buscar "quem já passou por esta posição do
+tabuleiro"**, e a busca acha por transposição de verdade (ordens de lance diferentes que chegam
+na mesma posição), não só por prefixo de movetext igual.
 
-### O que vem a seguir
-
-- **Stockfish** consultável a qualquer momento, e **jogar contra ele** com seleção de dificuldade.
+E tem **Stockfish** embarcado (processo separado, protocolo UCI): **consulte a qualquer
+momento** (o motor sugere o lance e a avaliação da posição atual, com botão pra jogar o que ele
+sugeriu) ou **jogue contra ele**, escolhendo lado e uma entre 5 dificuldades. A dificuldade usa
+`Skill Level` + teto de profundidade do próprio Stockfish — **não** `UCI_Elo`: essa opção mede
+força numa escala de motor-contra-motor (CCRL), não a de humano/chess.com, e os rótulos mostram
+isso (`≈2200 CCRL`, não `"2200"` solto).
 
 Detalhe completo do plano em `dev-notes/docs/planos/localchesspgn.md`.
 
@@ -47,3 +51,10 @@ código que ninguém deveria reescrever, e o `shakmaty` já traz isso testado e 
 formato Zobrist/Polyglot.
 
 O texto completo da licença está em [`LICENSE`](LICENSE).
+
+A engine é o [Stockfish](https://stockfishchess.org) (tag `sf_18`), build oficial **não
+modificada**, usada como **processo separado** via protocolo UCI — nunca linkada. O Stockfish é
+licenciado sob [GPL-3.0-or-later](https://github.com/official-stockfish/Stockfish/blob/sf_18/Copying.txt);
+o fonte correspondente está em <https://github.com/official-stockfish/Stockfish/tree/sf_18>. Três
+variantes (avx2/bmi2/sse41-popcnt) vêm embutidas — o app tenta cada uma nesta ordem até achar a
+que a CPU aguenta.

@@ -3,7 +3,18 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { create } from "zustand";
 
 import * as be from "../lib/backend";
-import type { AddSummary, GameRecord, IndexProgress, LegalDest, LibraryGameSummary, MoveNode, SearchHit } from "../lib/backend";
+import type {
+  AddSummary,
+  Difficulty,
+  EngineMoveResult,
+  GameRecord,
+  IndexProgress,
+  LegalDest,
+  LibraryGameSummary,
+  MoveNode,
+  SearchHit,
+} from "../lib/backend";
+import { sideToMove, START_FEN } from "../lib/fen";
 import {
   endPath,
   fenAtPath,
@@ -11,13 +22,19 @@ import {
   insertChildAtPath,
   nextPath,
   nodeAtPath,
-  plyAtPath,
+  nextPlyFrom,
   prevPath,
   type Path,
   updateNodeAtPath,
 } from "../lib/tree";
 
 const LIBRARY_PAGE = 30;
+/** Consultar não tem "dificuldade" — é sempre a resposta mais forte que dá
+ *  pra esperar numa UI (não o máximo absoluto, que estouraria o tempo de
+ *  espera aceitável pra um clique). */
+const CONSULT_SKILL = 20;
+const CONSULT_DEPTH = 16;
+const CONSULT_MOVETIME_MS = 1000;
 
 interface StoreState {
   games: GameRecord[];
@@ -76,6 +93,27 @@ interface StoreState {
   searchCurrentPosition: () => Promise<void>;
   openSearchHit: (hit: SearchHit) => Promise<void>;
   clearSearchResults: () => void;
+
+  // --- Motor (F4/F5) ---
+  difficulties: Difficulty[];
+  engineRunning: boolean;
+  engineStarting: boolean;
+  consulting: boolean;
+  consultResult: EngineMoveResult | null;
+  playMode: { playerColor: "w" | "b"; difficultyId: string } | null;
+  engineThinking: boolean;
+
+  initEngine: () => Promise<void>;
+  /** Interno — mesma nota do `resolveMove`/`commitMove` sobre não esconder
+   *  do tipo por causa da checagem de propriedade excedente do zustand. */
+  ensureEngineStarted: () => Promise<boolean>;
+  commitMove: (applied: { san: string; fen: string }) => void;
+  consultEngine: () => Promise<void>;
+  playSuggestedMove: () => void;
+  clearConsult: () => void;
+  startPlaying: (playerColor: "w" | "b", difficultyId: string) => Promise<void>;
+  stopPlaying: () => void;
+  maybeEngineRespond: () => Promise<void>;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -99,6 +137,14 @@ export const useStore = create<StoreState>((set, get) => ({
   searchResults: null,
   searchedFen: null,
   searchLoading: false,
+
+  difficulties: [],
+  engineRunning: false,
+  engineStarting: false,
+  consulting: false,
+  consultResult: null,
+  playMode: null,
+  engineThinking: false,
 
   openPgn: async () => {
     if (!be.inTauri()) return;
@@ -152,7 +198,7 @@ export const useStore = create<StoreState>((set, get) => ({
   clickSquare: async (square) => {
     const s = get();
     const game = s.games[s.gameIndex];
-    if (!game || s.promotionPending) return;
+    if (!game || s.promotionPending || s.engineThinking) return;
 
     if (square === s.selectedSquare) {
       set({ selectedSquare: null, legalDests: [] });
@@ -199,7 +245,17 @@ export const useStore = create<StoreState>((set, get) => ({
       set({ error: String(e), selectedSquare: null, legalDests: [] });
       return;
     }
+    get().commitMove(applied);
+    void get().maybeEngineRespond();
+  },
 
+  /** Insere (ou navega até, se já existir) um lance {san,fen} no caminho
+   *  atual — usado tanto por um lance clicado (F2) quanto por um lance do
+   *  motor (F5): pro resto da árvore, os dois são a mesma coisa. */
+  commitMove: (applied) => {
+    const s = get();
+    const game = s.games[s.gameIndex];
+    if (!game) return;
     const parentPath = s.path;
     const siblingChildren = parentPath.length === 0 ? game.root : (nodeAtPath(game.root, parentPath)?.children ?? []);
     const existing = siblingChildren.findIndex((c) => c.san === applied.san);
@@ -209,7 +265,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
 
     const newNode: MoveNode = {
-      ply: plyAtPath(game, parentPath),
+      ply: nextPlyFrom(game, parentPath),
       san: applied.san,
       fen: applied.fen,
       comment: null,
@@ -383,6 +439,113 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   clearSearchResults: () => set({ searchResults: null, searchedFen: null }),
+
+  // --- Motor ---
+
+  initEngine: async () => {
+    if (!be.inTauri()) return;
+    try {
+      const diffs = await be.listDifficulties();
+      set({ difficulties: diffs });
+    } catch {
+      // sem lista de dificuldade a UI de "jogar contra"/"consultar" só não
+      // aparece — não é erro pro usuário ver, o app segue leitor+editor normal.
+    }
+  },
+
+  ensureEngineStarted: async () => {
+    const s = get();
+    if (s.engineRunning) return true;
+    set({ engineStarting: true });
+    try {
+      await be.engineStart();
+      set({ engineRunning: true, engineStarting: false });
+      return true;
+    } catch (e) {
+      set({ error: String(e), engineStarting: false });
+      return false;
+    }
+  },
+
+  consultEngine: async () => {
+    const s = get();
+    const game = s.games[s.gameIndex];
+    if (!game || !be.inTauri()) return;
+    const ok = await get().ensureEngineStarted();
+    if (!ok) return;
+    set({ consulting: true, consultResult: null });
+    const fen = fenAtPath(game, s.path);
+    try {
+      const result = await be.engineGo(fen, CONSULT_SKILL, CONSULT_DEPTH, CONSULT_MOVETIME_MS);
+      set({ consultResult: result, consulting: false });
+    } catch (e) {
+      set({ error: String(e), consulting: false });
+    }
+  },
+
+  playSuggestedMove: () => {
+    const r = get().consultResult;
+    if (!r) return;
+    get().commitMove(r);
+    set({ consultResult: null });
+  },
+
+  clearConsult: () => set({ consultResult: null }),
+
+  startPlaying: async (playerColor, difficultyId) => {
+    const ok = await get().ensureEngineStarted();
+    if (!ok) return;
+    // "Jogar contra" sempre começa uma partida NOVA — não é edição do que
+    // já estava aberto.
+    const fresh: GameRecord = {
+      headers: [
+        ["White", playerColor === "w" ? "Você" : "Stockfish"],
+        ["Black", playerColor === "b" ? "Você" : "Stockfish"],
+      ],
+      startFen: START_FEN,
+      startPly: 1,
+      root: [],
+      result: null,
+      preambleComment: null,
+      error: null,
+    };
+    set({
+      games: [fresh],
+      gameIndex: 0,
+      path: [],
+      filePath: null,
+      dirty: false,
+      selectedSquare: null,
+      legalDests: [],
+      promotionPending: null,
+      consultResult: null,
+      searchResults: null,
+      playMode: { playerColor, difficultyId },
+    });
+    await get().maybeEngineRespond();
+  },
+
+  stopPlaying: () => set({ playMode: null }),
+
+  maybeEngineRespond: async () => {
+    const s = get();
+    const pm = s.playMode;
+    const game = s.games[s.gameIndex];
+    if (!pm || !game || s.engineThinking) return;
+    const fen = fenAtPath(game, s.path);
+    if (sideToMove(fen) === pm.playerColor) return; // vez do jogador
+    const diff = s.difficulties.find((d) => d.id === pm.difficultyId) ?? s.difficulties[0];
+    if (!diff) return;
+    set({ engineThinking: true });
+    try {
+      const result = await be.engineGo(fen, diff.skillLevel, diff.depth, diff.movetimeMs);
+      get().commitMove(result);
+    } catch (e) {
+      set({ error: String(e) });
+    } finally {
+      set({ engineThinking: false });
+    }
+  },
 }));
 
 // Dev: expõe o store pra smoke no console (fora do Tauri, ver App.tsx pro

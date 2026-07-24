@@ -86,6 +86,28 @@ const pt = {
   "search.loading": "Buscando…",
   "search.empty": "Nenhuma partida da biblioteca passou por esta posição.",
   "search.atPly": "lance {ply}",
+
+  "engine.consult": "Consultar motor",
+  "engine.thinking": "Pensando…",
+  "engine.suggestion": "Sugestão",
+  "engine.playSuggested": "Jogar este lance",
+
+  "play.toggle": "Jogar contra",
+  "play.stop": "Parar de jogar",
+  "play.title": "Jogar contra o Stockfish",
+  "play.side": "Suas peças",
+  "play.white": "Brancas",
+  "play.black": "Pretas",
+  "play.difficulty": "Dificuldade",
+  "play.start": "Começar",
+  "play.starting": "Iniciando o motor…",
+  "play.playingAs": "Você joga de {color}",
+
+  "difficulty.beginner": "Iniciante",
+  "difficulty.casual": "Casual",
+  "difficulty.club": "Clube",
+  "difficulty.strong": "Forte",
+  "difficulty.maximum": "Máximo",
 } as const;
 
 export type MessageKey = keyof typeof pt;
@@ -159,6 +181,28 @@ const en: Record<MessageKey, string> = {
   "search.loading": "Searching…",
   "search.empty": "No game in the library reached this position.",
   "search.atPly": "move {ply}",
+
+  "engine.consult": "Consult engine",
+  "engine.thinking": "Thinking…",
+  "engine.suggestion": "Suggestion",
+  "engine.playSuggested": "Play this move",
+
+  "play.toggle": "Play against",
+  "play.stop": "Stop playing",
+  "play.title": "Play against Stockfish",
+  "play.side": "Your pieces",
+  "play.white": "White",
+  "play.black": "Black",
+  "play.difficulty": "Difficulty",
+  "play.start": "Start",
+  "play.starting": "Starting the engine…",
+  "play.playingAs": "You're playing {color}",
+
+  "difficulty.beginner": "Beginner",
+  "difficulty.casual": "Casual",
+  "difficulty.club": "Club",
+  "difficulty.strong": "Strong",
+  "difficulty.maximum": "Maximum",
 };
 
 const es: Record<MessageKey, string> = {
@@ -230,6 +274,28 @@ const es: Record<MessageKey, string> = {
   "search.loading": "Buscando…",
   "search.empty": "Ninguna partida de la biblioteca llegó a esta posición.",
   "search.atPly": "jugada {ply}",
+
+  "engine.consult": "Consultar motor",
+  "engine.thinking": "Pensando…",
+  "engine.suggestion": "Sugerencia",
+  "engine.playSuggested": "Jugar esta jugada",
+
+  "play.toggle": "Jugar contra",
+  "play.stop": "Dejar de jugar",
+  "play.title": "Jugar contra Stockfish",
+  "play.side": "Tus piezas",
+  "play.white": "Blancas",
+  "play.black": "Negras",
+  "play.difficulty": "Dificultad",
+  "play.start": "Empezar",
+  "play.starting": "Iniciando el motor…",
+  "play.playingAs": "Juegas de {color}",
+
+  "difficulty.beginner": "Principiante",
+  "difficulty.casual": "Casual",
+  "difficulty.club": "Club",
+  "difficulty.strong": "Fuerte",
+  "difficulty.maximum": "Máximo",
 };
 
 const DICTS: Record<Locale, Record<MessageKey, string>> = { pt, en, es };

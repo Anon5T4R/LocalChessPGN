@@ -117,3 +117,42 @@ export async function removeLibraryGame(id: number): Promise<void> {
 export async function searchPosition(fen: string, limit: number): Promise<SearchHit[]> {
   return invoke<SearchHit[]>("search_position", { fen, limit });
 }
+
+export interface Difficulty {
+  id: string;
+  skillLevel: number;
+  depth: number;
+  movetimeMs: number;
+  ccrlLabel: string;
+}
+
+export interface EngineStatus {
+  running: boolean;
+}
+
+export interface EngineMoveResult {
+  san: string;
+  fen: string;
+  scoreCp: number | null;
+  mateIn: number | null;
+}
+
+export async function engineStart(): Promise<string> {
+  return invoke<string>("engine_start");
+}
+
+export async function engineStop(): Promise<void> {
+  await invoke("engine_stop");
+}
+
+export async function engineStatus(): Promise<EngineStatus> {
+  return invoke<EngineStatus>("engine_status");
+}
+
+export async function engineGo(fen: string, skillLevel: number, depth: number, movetimeMs: number): Promise<EngineMoveResult> {
+  return invoke<EngineMoveResult>("engine_go", { fen, skillLevel, depth, movetimeMs });
+}
+
+export async function listDifficulties(): Promise<Difficulty[]> {
+  return invoke<Difficulty[]>("list_difficulties");
+}

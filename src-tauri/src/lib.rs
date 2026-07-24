@@ -1,4 +1,5 @@
 mod edit;
+mod engine;
 mod library;
 mod pgn;
 mod write;
@@ -7,6 +8,7 @@ use std::sync::Mutex;
 
 use tauri::Manager;
 
+use engine::Engine;
 use library::{Db, IndexCancel};
 
 fn open_main(app: &tauri::AppHandle) {
@@ -27,6 +29,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(Db(Mutex::new(None)))
         .manage(IndexCancel::default())
+        .manage(Engine::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
@@ -47,8 +50,22 @@ pub fn run() {
             library::search::open_library_game,
             library::search::remove_library_game,
             library::search::search_position,
+            engine::engine_start,
+            engine::engine_stop,
+            engine::engine_status,
+            engine::engine_go,
+            engine::list_difficulties,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|_app_handle, _event| {});
+        .run(|app_handle, event| {
+            // Nunca deixa o Stockfish órfão quando o app sai.
+            if let tauri::RunEvent::Exit = event {
+                if let Some(engine) = app_handle.try_state::<Engine>() {
+                    if let Ok(mut guard) = engine.0.lock() {
+                        *guard = None;
+                    }
+                }
+            }
+        });
 }

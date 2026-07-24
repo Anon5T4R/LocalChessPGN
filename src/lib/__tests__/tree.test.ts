@@ -6,6 +6,7 @@ import {
   findPathByFen,
   insertChildAtPath,
   nextPath,
+  nextPlyFrom,
   nodeAtPath,
   prevPath,
   samePath,
@@ -163,5 +164,35 @@ describe("findPathByFen", () => {
 
   it("devolve null quando o FEN não está na árvore", () => {
     expect(findPathByFen(game, "fen(nunca-jogado)")).toBeNull();
+  });
+});
+
+describe("nextPlyFrom", () => {
+  // Ply de VERDADE (1,2,3,4...), diferente do resto do arquivo (que usa 0
+  // em todo mundo porque não é o foco) — é exatamente o detalhe que o bug
+  // escondia: com ply sintético igual em toda parte, "pai + 1" e "pai" davam
+  // o mesmo resultado errado sem ninguém notar.
+  const e4b = { ply: 1, san: "e4", fen: "f1", comment: null, nags: [], children: [] as MoveNode[] };
+  const e5b = { ply: 2, san: "e5", fen: "f2", comment: null, nags: [], children: [] as MoveNode[] };
+  e4b.children = [e5b];
+  const g: GameRecord = {
+    headers: [],
+    startFen: "start",
+    startPly: 1,
+    root: [e4b],
+    result: null,
+    preambleComment: null,
+    error: null,
+  };
+
+  it("1º lance da partida usa startPly, não pai+1 (não existe pai)", () => {
+    expect(nextPlyFrom(g, [])).toBe(1);
+  });
+
+  it("um lance a partir de um pai existente é pai.ply + 1 — NÃO pai.ply", () => {
+    // Achado jogando de verdade: sem o +1, e5 saía com ply 1 (igual ao pai,
+    // e4) e a lista de lances mostrava "1. e4 1. e5" em vez de "1...e5".
+    expect(nextPlyFrom(g, [0])).toBe(2); // depois de e4 (ply 1) => 2, não 1
+    expect(nextPlyFrom(g, [0, 0])).toBe(3); // depois de e5 (ply 2) => 3, não 2
   });
 });
