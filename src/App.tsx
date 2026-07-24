@@ -26,18 +26,32 @@ function gameLabel(headers: [string, string][]): string {
   return `${white} — ${black} (${result})`;
 }
 
+const PROMOTION_ROLES = ["q", "r", "b", "n"] as const;
+
 export default function App() {
   const games = useStore((s) => s.games);
   const gameIndex = useStore((s) => s.gameIndex);
   const path = useStore((s) => s.path);
   const error = useStore((s) => s.error);
+  const filePath = useStore((s) => s.filePath);
+  const dirty = useStore((s) => s.dirty);
   const openPgn = useStore((s) => s.openPgn);
+  const loadGames = useStore((s) => s.loadGames);
   const selectGame = useStore((s) => s.selectGame);
   const selectPath = useStore((s) => s.selectPath);
   const goStart = useStore((s) => s.goStart);
   const goPrev = useStore((s) => s.goPrev);
   const goNext = useStore((s) => s.goNext);
   const goEnd = useStore((s) => s.goEnd);
+  const selectedSquare = useStore((s) => s.selectedSquare);
+  const legalDests = useStore((s) => s.legalDests);
+  const promotionPending = useStore((s) => s.promotionPending);
+  const clickSquare = useStore((s) => s.clickSquare);
+  const resolvePromotion = useStore((s) => s.resolvePromotion);
+  const cancelPromotion = useStore((s) => s.cancelPromotion);
+  const setComment = useStore((s) => s.setComment);
+  const toggleNag = useStore((s) => s.toggleNag);
+  const save = useStore((s) => s.save);
 
   const locale = useLocale();
   const [theme, setTheme] = useState<Theme>(loadTheme);
@@ -61,8 +75,19 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [games.length, goPrev, goNext, goStart, goEnd]);
 
+  // Não deixa fechar a janela com alteração não salva sem avisar.
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      if (!dirty) return;
+      e.preventDefault();
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
+
   const game = games[gameIndex];
   const devSampleAvailable = import.meta.env.DEV && !inTauri();
+  const canSave = dirty && filePath !== null;
 
   return (
     <div className="app">
@@ -73,11 +98,13 @@ export default function App() {
         </div>
         <div className="topbar-actions">
           {devSampleAvailable && (
-            <button
-              className="btn ghost small"
-              onClick={() => useStore.setState({ games: [DEV_SAMPLE_GAME], gameIndex: 0, path: [] })}
-            >
+            <button className="btn ghost small" onClick={() => loadGames([DEV_SAMPLE_GAME])}>
               Dev: sample
+            </button>
+          )}
+          {game && (
+            <button className="btn small" disabled={!canSave} onClick={() => void save()} title={t("save.title")}>
+              {dirty ? t("save.dirty") : t("save.clean")}
             </button>
           )}
           <button className="btn primary" onClick={() => void openPgn()}>
@@ -142,7 +169,26 @@ export default function App() {
 
             <div className="workspace">
               <div className="board-pane">
-                <Board fen={fenAtPath(game, path)} />
+                <div className="board-wrap">
+                  <Board
+                    fen={fenAtPath(game, path)}
+                    selectedSquare={selectedSquare}
+                    legalDests={legalDests}
+                    onSquareClick={(sq) => void clickSquare(sq)}
+                  />
+                  {promotionPending && (
+                    <div className="promo-picker">
+                      {PROMOTION_ROLES.map((r) => (
+                        <button key={r} className="promo-btn" onClick={() => void resolvePromotion(r)} title={t(`promotion.${r}`)}>
+                          {{ q: "♕", r: "♖", b: "♗", n: "♘" }[r]}
+                        </button>
+                      ))}
+                      <button className="promo-btn promo-cancel" onClick={cancelPromotion} title={t("promotion.cancel")}>
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <div className="board-nav">
                   <button className="btn small" title={t("nav.start")} onClick={goStart}>
                     ⏮
@@ -158,7 +204,7 @@ export default function App() {
                   </button>
                 </div>
               </div>
-              <MoveList game={game} path={path} onSelect={selectPath} />
+              <MoveList game={game} path={path} onSelect={selectPath} onComment={setComment} onToggleNag={toggleNag} />
             </div>
           </>
         )}

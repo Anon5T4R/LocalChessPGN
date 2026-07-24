@@ -56,6 +56,19 @@ const pt = {
 
   "error.parse": "Não consegui ler este PGN: {msg}",
   "error.empty": "Nenhuma partida encontrada neste arquivo.",
+
+  "save.title": "Salvar PGN",
+  "save.dirty": "Salvar",
+  "save.clean": "Salvo",
+
+  "promotion.q": "Promover a Dama",
+  "promotion.r": "Promover a Torre",
+  "promotion.b": "Promover a Bispo",
+  "promotion.n": "Promover a Cavalo",
+  "promotion.cancel": "Cancelar",
+
+  "annotate.commentPlaceholder": "Comentário deste lance…",
+  "annotate.nagTitle": "Anotação {glyph}",
 } as const;
 
 export type MessageKey = keyof typeof pt;
@@ -99,6 +112,19 @@ const en: Record<MessageKey, string> = {
 
   "error.parse": "Couldn't read this PGN: {msg}",
   "error.empty": "No games found in this file.",
+
+  "save.title": "Save PGN",
+  "save.dirty": "Save",
+  "save.clean": "Saved",
+
+  "promotion.q": "Promote to Queen",
+  "promotion.r": "Promote to Rook",
+  "promotion.b": "Promote to Bishop",
+  "promotion.n": "Promote to Knight",
+  "promotion.cancel": "Cancel",
+
+  "annotate.commentPlaceholder": "Comment on this move…",
+  "annotate.nagTitle": "Annotation {glyph}",
 };
 
 const es: Record<MessageKey, string> = {
@@ -140,6 +166,19 @@ const es: Record<MessageKey, string> = {
 
   "error.parse": "No pude leer este PGN: {msg}",
   "error.empty": "No se encontraron partidas en este archivo.",
+
+  "save.title": "Guardar PGN",
+  "save.dirty": "Guardar",
+  "save.clean": "Guardado",
+
+  "promotion.q": "Coronar a Dama",
+  "promotion.r": "Coronar a Torre",
+  "promotion.b": "Coronar a Alfil",
+  "promotion.n": "Coronar a Caballo",
+  "promotion.cancel": "Cancelar",
+
+  "annotate.commentPlaceholder": "Comentario de esta jugada…",
+  "annotate.nagTitle": "Anotación {glyph}",
 };
 
 const DICTS: Record<Locale, Record<MessageKey, string>> = { pt, en, es };

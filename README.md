@@ -7,13 +7,16 @@ Parte da suíte **Local/Taylor** de aplicativos offline-first.
 
 ## Estado
 
-**v0.1.0 (fundação).** Carrega um arquivo `.pgn` (um ou vários jogos), mostra o tabuleiro na
-posição de cada lance e deixa navegar a árvore inteira — lance principal e variantes,
-comentários e anotações (NAG) inclusos.
+**v0.2.0.** Leitor **e editor** de PGN: carrega um arquivo `.pgn` (um ou vários jogos), mostra o
+tabuleiro na posição de cada lance e deixa navegar a árvore inteira — lance principal e
+variantes, comentários e anotações (NAG) inclusos. Agora também dá pra **jogar no próprio
+tabuleiro** (clique na peça, clique no destino destacado — com escolha de peça na promoção),
+**criar variantes** de verdade (um lance que já existe navega até ele; um lance novo vira
+variante), **anotar** (comentário + NAG por lance) e **salvar** de volta pro `.pgn` (gravação
+atômica: escreve num arquivo à parte e só troca de nome no fim).
 
 ### O que vem a seguir
 
-- **Editar**: anotar, criar variante, salvar PGN.
 - **Base de partidas** que você aponta, com **busca por posição** (dado um FEN, quais partidas
   passaram por ali).
 - **Stockfish** consultável a qualquer momento, e **jogar contra ele** com seleção de dificuldade.

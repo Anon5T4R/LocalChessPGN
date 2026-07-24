@@ -33,3 +33,27 @@ export async function parsePgnFile(path: string): Promise<GameRecord[]> {
 export async function parsePgnText(text: string): Promise<GameRecord[]> {
   return invoke<GameRecord[]>("parse_pgn_text", { text });
 }
+
+export interface LegalDest {
+  to: string;
+  /** Casa alcançável por mais de um lance (as opções de promoção contam como
+   *  UMA casa em destaque; só pergunta a peça quando precisa). */
+  promotion: boolean;
+}
+
+export async function legalMovesFrom(fen: string, from: string): Promise<LegalDest[]> {
+  return invoke<LegalDest[]>("legal_moves_from", { fen, from });
+}
+
+export interface AppliedMove {
+  san: string;
+  fen: string;
+}
+
+export async function applyMove(fen: string, from: string, to: string, promotion?: string): Promise<AppliedMove> {
+  return invoke<AppliedMove>("apply_move", { fen, from, to, promotion: promotion ?? null });
+}
+
+export async function savePgnFile(path: string, games: GameRecord[]): Promise<void> {
+  await invoke("save_pgn_file", { path, games });
+}

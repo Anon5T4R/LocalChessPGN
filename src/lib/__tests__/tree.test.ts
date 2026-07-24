@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { GameRecord, MoveNode } from "../backend";
-import { endPath, fenAtPath, nextPath, nodeAtPath, prevPath, samePath } from "../tree";
+import {
+  endPath,
+  fenAtPath,
+  insertChildAtPath,
+  nextPath,
+  nodeAtPath,
+  prevPath,
+  samePath,
+  updateNodeAtPath,
+} from "../tree";
 
 // Mesma forma de árvore do teste `variation_comment_and_nag` no Rust:
 // 1.e4 e5 2.Nf3 (2.f4 Nc6) 2...Nc6 — a variante é irmã de Nf3 (mesmo pai: e5).
@@ -83,5 +92,57 @@ describe("samePath", () => {
     expect(samePath([], [])).toBe(true);
     expect(samePath([0], [0, 1])).toBe(false);
     expect(samePath([0, 1], [0, 2])).toBe(false);
+  });
+});
+
+describe("updateNodeAtPath", () => {
+  it("muda só o nó do caminho, sem tocar a referência de irmãos", () => {
+    const next = updateNodeAtPath(game, [0, 0, 0], (n) => ({ ...n, comment: "novo" }));
+    expect(nodeAtPath(next.root, [0, 0, 0])?.comment).toBe("novo");
+    // a variante f4 (irmã de Nf3) é o MESMO objeto — não foi reconstruída à toa.
+    expect(nodeAtPath(next.root, [0, 0, 1])).toBe(f4);
+    // o original não foi mutado.
+    expect(nodeAtPath(game.root, [0, 0, 0])?.comment).toBeNull();
+  });
+
+  it("caminho [] não muda nada (não existe nó pra 'antes do 1º lance')", () => {
+    const next = updateNodeAtPath(game, [], (n) => ({ ...n, comment: "x" }));
+    expect(next).toBe(game);
+  });
+
+  it("a espinha do caminho troca de referência (React precisa disso pra re-renderizar)", () => {
+    const next = updateNodeAtPath(game, [0, 0, 0], (n) => ({ ...n, comment: "novo" }));
+    expect(next).not.toBe(game);
+    expect(next.root).not.toBe(game.root);
+    expect(next.root[0]).not.toBe(game.root[0]); // e4
+    expect(next.root[0].children[0]).not.toBe(game.root[0].children[0]); // e5
+  });
+});
+
+describe("insertChildAtPath", () => {
+  it("insere na raiz quando parentPath é []", () => {
+    const novo = node("d4");
+    const { game: next, path } = insertChildAtPath(game, [], novo);
+    expect(path).toEqual([1]);
+    expect(next.root[1]).toBe(novo);
+    expect(next.root[0]).toBe(e4); // mainline intocada
+    expect(game.root.length).toBe(1); // original intocado
+  });
+
+  it("insere como NOVA VARIANTE quando o nó já tem filhos (não sobrescreve)", () => {
+    const novaVariante = node("c4");
+    const { game: next, path } = insertChildAtPath(game, [0, 0], novaVariante); // filho de e5
+    expect(path).toEqual([0, 0, 2]); // e5 já tinha 2 filhos (Nf3, f4)
+    const e5depois = nodeAtPath(next.root, [0, 0]);
+    expect(e5depois?.children).toHaveLength(3);
+    expect(e5depois?.children[0]).toBe(nf3); // mainline intocada
+    expect(e5depois?.children[1]).toBe(f4); // variante antiga intocada
+    expect(e5depois?.children[2]).toBe(novaVariante);
+  });
+
+  it("insere como MAINLINE (1º filho) numa folha sem filhos", () => {
+    const seguida = node("Bb5");
+    const { path } = insertChildAtPath(game, [0, 0, 0, 0], seguida); // filho de Nc6-main
+    expect(path).toEqual([0, 0, 0, 0, 0]);
   });
 });

@@ -1,4 +1,6 @@
+mod edit;
 mod pgn;
+mod write;
 
 use tauri::Manager;
 
@@ -21,6 +23,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             pgn::parse_pgn_text,
             pgn::parse_pgn_file,
+            edit::legal_moves_from,
+            edit::apply_move,
+            write::save_pgn_file,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

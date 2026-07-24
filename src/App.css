@@ -374,6 +374,56 @@ select:focus {
   bottom: 1px;
   right: 3px;
 }
+.sq {
+  cursor: pointer;
+}
+.sq.sq-selected {
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+.sq-dest-dot {
+  position: absolute;
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  pointer-events: none;
+}
+.sq-piece + .sq-dest-dot {
+  /* casa de destino OCUPADA (captura): anel em vez de bolinha central */
+  width: 88%;
+  height: 88%;
+  background: transparent;
+  box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+.board-wrap {
+  position: relative;
+}
+.promo-picker {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(10, 14, 22, 0.55);
+  border-radius: 8px;
+}
+.promo-btn {
+  width: 52px;
+  height: 52px;
+  font-size: 28px;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.promo-btn:hover {
+  background: var(--accent-soft);
+}
+.promo-cancel {
+  font-size: 18px;
+  color: var(--danger);
+}
 
 .board-nav {
   display: flex;
@@ -456,6 +506,42 @@ select:focus {
 }
 .mv-error {
   margin-top: 10px;
+}
+
+/* ---------- anotar (comentário + NAG do lance selecionado) ---------- */
+
+.annotate {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.annotate-nags {
+  display: flex;
+  gap: 5px;
+}
+.nag-btn {
+  width: 30px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  font-size: 13px;
+}
+.nag-btn:hover {
+  background: var(--border);
+}
+.nag-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.annotate-comment {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  font-style: italic;
 }
 
 ::-webkit-scrollbar {

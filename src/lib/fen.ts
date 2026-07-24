@@ -41,3 +41,8 @@ export function boardFromFen(fen: string): Square[][] {
 export function sideToMove(fen: string): "w" | "b" {
   return fen.split(" ")[1] === "b" ? "b" : "w";
 }
+
+/** "e4" a partir de file/rank 0-indexados (0=a/rank1). */
+export function squareName(file: number, rank: number): string {
+  return `${"abcdefgh"[file]}${rank + 1}`;
+}

@@ -11,11 +11,11 @@
 use std::ops::ControlFlow;
 
 use pgn_reader::{Nag, Outcome, RawComment, RawTag, Reader, SanPlus, Skip, Visitor};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use shakmaty::fen::Fen;
 use shakmaty::{CastlingMode, Chess, Color, EnPassantMode, Position};
 
-#[derive(Serialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct MoveNode {
     pub ply: u32,
@@ -26,7 +26,7 @@ pub struct MoveNode {
     pub children: Vec<MoveNode>,
 }
 
-#[derive(Serialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct GameRecord {
     pub headers: Vec<(String, String)>,
@@ -315,7 +315,7 @@ impl Visitor for GameVisitor {
     }
 }
 
-fn parse_pgn_bytes(bytes: &[u8]) -> Vec<GameRecord> {
+pub(crate) fn parse_pgn_bytes(bytes: &[u8]) -> Vec<GameRecord> {
     let mut reader = Reader::new(std::io::Cursor::new(bytes));
     let mut visitor = GameVisitor;
     let mut games = Vec::new();
