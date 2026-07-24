@@ -1,4 +1,4 @@
-# Baixa as 3 variantes Windows do Stockfish 18 (avx2/bmi2/sse41-popcnt) do
+﻿# Baixa as 3 variantes Windows do Stockfish 18 (avx2/bmi2/sse41-popcnt) do
 # espelho da suite e instala em src-tauri/binaries/stockfish. As 3 ficam
 # juntas de proposito: a maquina do usuario pode nao suportar AVX2/BMI2, e a
 # cascata de compatibilidade (tentar avx2 -> bmi2 -> sse41-popcnt em tempo de
