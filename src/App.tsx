@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 import Board from "./components/Board";
+import LibraryPanel from "./components/LibraryPanel";
 import MoveList from "./components/MoveList";
+import SearchResults from "./components/SearchResults";
 import { inTauri } from "./lib/backend";
 import { DEV_SAMPLE_GAME } from "./lib/devFixture";
 import { fenAtPath } from "./lib/tree";
@@ -52,6 +54,11 @@ export default function App() {
   const setComment = useStore((s) => s.setComment);
   const toggleNag = useStore((s) => s.toggleNag);
   const save = useStore((s) => s.save);
+  const libraryOpen = useStore((s) => s.libraryOpen);
+  const toggleLibrary = useStore((s) => s.toggleLibrary);
+  const initLibraryEvents = useStore((s) => s.initLibraryEvents);
+  const searchResults = useStore((s) => s.searchResults);
+  const searchCurrentPosition = useStore((s) => s.searchCurrentPosition);
 
   const locale = useLocale();
   const [theme, setTheme] = useState<Theme>(loadTheme);
@@ -59,6 +66,10 @@ export default function App() {
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    initLibraryEvents();
+  }, [initLibraryEvents]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -107,6 +118,9 @@ export default function App() {
               {dirty ? t("save.dirty") : t("save.clean")}
             </button>
           )}
+          <button className={`btn small${libraryOpen ? " active" : ""}`} onClick={toggleLibrary} title={t("library.toggle")}>
+            📚 {t("library.toggle")}
+          </button>
           <button className="btn primary" onClick={() => void openPgn()}>
             + {t("topbar.open")}
           </button>
@@ -202,13 +216,23 @@ export default function App() {
                   <button className="btn small" title={t("nav.end")} onClick={goEnd}>
                     ⏭
                   </button>
+                  <span className="toolbar-sep" />
+                  <button className="btn small" title={t("search.button")} onClick={() => void searchCurrentPosition()}>
+                    🔍 {t("search.button")}
+                  </button>
                 </div>
               </div>
-              <MoveList game={game} path={path} onSelect={selectPath} onComment={setComment} onToggleNag={toggleNag} />
+              {searchResults ? (
+                <SearchResults />
+              ) : (
+                <MoveList game={game} path={path} onSelect={selectPath} onComment={setComment} onToggleNag={toggleNag} />
+              )}
             </div>
           </>
         )}
       </main>
+
+      <LibraryPanel />
     </div>
   );
 }

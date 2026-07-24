@@ -1,9 +1,23 @@
+import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { create } from "zustand";
 
 import * as be from "../lib/backend";
-import type { GameRecord, LegalDest, MoveNode } from "../lib/backend";
-import { endPath, fenAtPath, insertChildAtPath, nextPath, nodeAtPath, plyAtPath, prevPath, type Path, updateNodeAtPath } from "../lib/tree";
+import type { AddSummary, GameRecord, IndexProgress, LegalDest, LibraryGameSummary, MoveNode, SearchHit } from "../lib/backend";
+import {
+  endPath,
+  fenAtPath,
+  findPathByFen,
+  insertChildAtPath,
+  nextPath,
+  nodeAtPath,
+  plyAtPath,
+  prevPath,
+  type Path,
+  updateNodeAtPath,
+} from "../lib/tree";
+
+const LIBRARY_PAGE = 30;
 
 interface StoreState {
   games: GameRecord[];
@@ -39,6 +53,29 @@ interface StoreState {
   setComment: (text: string) => void;
   toggleNag: (nag: number) => void;
   save: () => Promise<void>;
+
+  // --- Biblioteca (F3/F3b) ---
+  libraryOpen: boolean;
+  libraryGames: LibraryGameSummary[];
+  libraryHasMore: boolean;
+  libraryLoading: boolean;
+  indexProgress: IndexProgress | null;
+  lastAddSummary: AddSummary | null;
+  searchResults: SearchHit[] | null;
+  searchedFen: string | null;
+  searchLoading: boolean;
+
+  initLibraryEvents: () => void;
+  toggleLibrary: () => void;
+  refreshLibrary: () => Promise<void>;
+  loadMoreLibrary: () => Promise<void>;
+  addFilesToLibrary: () => Promise<void>;
+  cancelAddingFiles: () => void;
+  removeFromLibrary: (id: number) => Promise<void>;
+  openFromLibrary: (id: number) => Promise<void>;
+  searchCurrentPosition: () => Promise<void>;
+  openSearchHit: (hit: SearchHit) => Promise<void>;
+  clearSearchResults: () => void;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -52,6 +89,16 @@ export const useStore = create<StoreState>((set, get) => ({
   selectedSquare: null,
   legalDests: [],
   promotionPending: null,
+
+  libraryOpen: false,
+  libraryGames: [],
+  libraryHasMore: true,
+  libraryLoading: false,
+  indexProgress: null,
+  lastAddSummary: null,
+  searchResults: null,
+  searchedFen: null,
+  searchLoading: false,
 
   openPgn: async () => {
     if (!be.inTauri()) return;
@@ -209,6 +256,133 @@ export const useStore = create<StoreState>((set, get) => ({
       set({ error: String(e) });
     }
   },
+
+  // --- Biblioteca ---
+
+  initLibraryEvents: () => {
+    if (!be.inTauri()) return;
+    void listen<IndexProgress>("library-index-progress", (e) => set({ indexProgress: e.payload }));
+  },
+
+  toggleLibrary: () => {
+    const opening = !get().libraryOpen;
+    set({ libraryOpen: opening });
+    if (opening && get().libraryGames.length === 0) void get().refreshLibrary();
+  },
+
+  refreshLibrary: async () => {
+    if (!be.inTauri()) return;
+    set({ libraryLoading: true });
+    try {
+      const page = await be.listLibraryGames(0, LIBRARY_PAGE);
+      set({ libraryGames: page, libraryHasMore: page.length === LIBRARY_PAGE, libraryLoading: false });
+    } catch (e) {
+      set({ error: String(e), libraryLoading: false });
+    }
+  },
+
+  loadMoreLibrary: async () => {
+    const s = get();
+    if (!be.inTauri() || s.libraryLoading || !s.libraryHasMore) return;
+    set({ libraryLoading: true });
+    try {
+      const page = await be.listLibraryGames(s.libraryGames.length, LIBRARY_PAGE);
+      set((st) => ({
+        libraryGames: [...st.libraryGames, ...page],
+        libraryHasMore: page.length === LIBRARY_PAGE,
+        libraryLoading: false,
+      }));
+    } catch (e) {
+      set({ error: String(e), libraryLoading: false });
+    }
+  },
+
+  addFilesToLibrary: async () => {
+    if (!be.inTauri()) return;
+    const picked = await open({ multiple: true, filters: [{ name: "PGN", extensions: ["pgn"] }] });
+    if (!picked) return;
+    const paths = Array.isArray(picked) ? picked : [picked];
+    if (paths.length === 0) return;
+    set({ indexProgress: { done: 0, total: paths.length, currentFile: "" } });
+    try {
+      const summary = await be.addPgnFiles(paths);
+      set({ lastAddSummary: summary, indexProgress: null });
+      await get().refreshLibrary();
+    } catch (e) {
+      set({ error: String(e), indexProgress: null });
+    }
+  },
+
+  cancelAddingFiles: () => {
+    void be.cancelIndexing();
+  },
+
+  removeFromLibrary: async (id) => {
+    try {
+      await be.removeLibraryGame(id);
+      set((st) => ({ libraryGames: st.libraryGames.filter((g) => g.id !== id) }));
+    } catch (e) {
+      set({ error: String(e) });
+    }
+  },
+
+  openFromLibrary: async (id) => {
+    try {
+      const game = await be.openLibraryGame(id);
+      set({
+        games: [game],
+        gameIndex: 0,
+        path: [],
+        filePath: null,
+        dirty: false,
+        selectedSquare: null,
+        legalDests: [],
+        promotionPending: null,
+        libraryOpen: false,
+      });
+    } catch (e) {
+      set({ error: String(e) });
+    }
+  },
+
+  searchCurrentPosition: async () => {
+    const s = get();
+    const game = s.games[s.gameIndex];
+    if (!game || !be.inTauri()) return;
+    const fen = fenAtPath(game, s.path);
+    set({ searchLoading: true, searchedFen: fen });
+    try {
+      const results = await be.searchPosition(fen, 50);
+      set({ searchResults: results, searchLoading: false });
+    } catch (e) {
+      set({ error: String(e), searchLoading: false });
+    }
+  },
+
+  openSearchHit: async (hit) => {
+    const s = get();
+    const fen = s.searchedFen;
+    try {
+      const game = await be.openLibraryGame(hit.gameId);
+      const path = fen ? (findPathByFen(game, fen) ?? []) : [];
+      set({
+        games: [game],
+        gameIndex: 0,
+        path,
+        filePath: null,
+        dirty: false,
+        selectedSquare: null,
+        legalDests: [],
+        promotionPending: null,
+        searchResults: null,
+        searchedFen: null,
+      });
+    } catch (e) {
+      set({ error: String(e) });
+    }
+  },
+
+  clearSearchResults: () => set({ searchResults: null, searchedFen: null }),
 }));
 
 // Dev: expõe o store pra smoke no console (fora do Tauri, ver App.tsx pro

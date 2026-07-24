@@ -1,6 +1,6 @@
 [package]
 name = "localchesspgn"
-version = "0.2.0"
+version = "0.3.0"
 description = "LocalChessPGN — leitor e editor de PGN, com tabuleiro e navegação de variantes, 100% offline"
 authors = ["Taylor"]
 edition = "2021"
@@ -24,6 +24,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 shakmaty = "0.30"
 pgn-reader = "0.29"
+rusqlite = { version = "0.32", features = ["bundled"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = "2"

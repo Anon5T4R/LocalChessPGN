@@ -90,3 +90,23 @@ export function insertChildAtPath(game: GameRecord, parentPath: Path, child: Mov
   const root = recur(game.root, parentPath[0], parentPath.slice(1));
   return { game: { ...game, root }, path: [...parentPath, insertedIndex] };
 }
+
+/** Acha o caminho até um nó com este FEN exato (varre a árvore INTEIRA,
+ *  mainline e variantes). Usado ao abrir um resultado de busca por posição
+ *  — a busca já roda pelo FEN certo, então achar de volta é comparar texto,
+ *  não recalcular nada. `null` se a posição não estiver na árvore (não
+ *  deveria acontecer vindo de um resultado de busca, mas o chamador tem que
+ *  tratar como "não achei" em vez de presumir). */
+export function findPathByFen(game: GameRecord, fen: string): Path | null {
+  if (game.startFen === fen) return [];
+  function search(nodes: MoveNode[], prefix: Path): Path | null {
+    for (let i = 0; i < nodes.length; i++) {
+      const path = [...prefix, i];
+      if (nodes[i].fen === fen) return path;
+      const found = search(nodes[i].children, path);
+      if (found) return found;
+    }
+    return null;
+  }
+  return search(game.root, []);
+}

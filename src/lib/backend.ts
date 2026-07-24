@@ -57,3 +57,63 @@ export async function applyMove(fen: string, from: string, to: string, promotion
 export async function savePgnFile(path: string, games: GameRecord[]): Promise<void> {
   await invoke("save_pgn_file", { path, games });
 }
+
+export interface LibraryGameSummary {
+  id: number;
+  white: string;
+  black: string;
+  event: string;
+  date: string;
+  result: string;
+  sourcePath: string;
+}
+
+export interface SearchHit {
+  gameId: number;
+  ply: number;
+  white: string;
+  black: string;
+  event: string;
+  date: string;
+  result: string;
+}
+
+export interface IndexProgress {
+  done: number;
+  total: number;
+  currentFile: string;
+}
+
+export interface AddSummary {
+  gamesAdded: number;
+  gamesSkipped: number;
+  cancelled: boolean;
+}
+
+export async function addPgnFiles(paths: string[]): Promise<AddSummary> {
+  return invoke<AddSummary>("add_pgn_files", { paths });
+}
+
+export async function cancelIndexing(): Promise<void> {
+  await invoke("cancel_indexing");
+}
+
+export async function clearLibrary(): Promise<void> {
+  await invoke("clear_library");
+}
+
+export async function listLibraryGames(offset: number, limit: number): Promise<LibraryGameSummary[]> {
+  return invoke<LibraryGameSummary[]>("list_library_games", { offset, limit });
+}
+
+export async function openLibraryGame(id: number): Promise<GameRecord> {
+  return invoke<GameRecord>("open_library_game", { id });
+}
+
+export async function removeLibraryGame(id: number): Promise<void> {
+  await invoke("remove_library_game", { id });
+}
+
+export async function searchPosition(fen: string, limit: number): Promise<SearchHit[]> {
+  return invoke<SearchHit[]>("search_position", { fen, limit });
+}

@@ -7,18 +7,21 @@ Parte da suíte **Local/Taylor** de aplicativos offline-first.
 
 ## Estado
 
-**v0.2.0.** Leitor **e editor** de PGN: carrega um arquivo `.pgn` (um ou vários jogos), mostra o
+**v0.3.0.** Leitor **e editor** de PGN: carrega um arquivo `.pgn` (um ou vários jogos), mostra o
 tabuleiro na posição de cada lance e deixa navegar a árvore inteira — lance principal e
-variantes, comentários e anotações (NAG) inclusos. Agora também dá pra **jogar no próprio
-tabuleiro** (clique na peça, clique no destino destacado — com escolha de peça na promoção),
-**criar variantes** de verdade (um lance que já existe navega até ele; um lance novo vira
-variante), **anotar** (comentário + NAG por lance) e **salvar** de volta pro `.pgn` (gravação
-atômica: escreve num arquivo à parte e só troca de nome no fim).
+variantes, comentários e anotações (NAG) inclusos. Dá pra **jogar no próprio tabuleiro** (clique
+na peça, clique no destino destacado — com escolha de peça na promoção), **criar variantes** de
+verdade (um lance que já existe navega até ele; um lance novo vira variante), **anotar**
+(comentário + NAG por lance) e **salvar** de volta pro `.pgn` (gravação atômica).
+
+Agora também tem **biblioteca**: aponte um ou mais arquivos `.pgn` e eles entram numa base
+persistente (SQLite local, nada embutido/baixado). Cada partida é indexada por **posição**
+(hash Zobrist compatível com Polyglot) — a qualquer momento dá pra **buscar "quem já passou por
+esta posição do tabuleiro"** e a busca acha por transposição de verdade (ordens de lance
+diferentes que chegam na mesma posição), não só por prefixo de movetext igual.
 
 ### O que vem a seguir
 
-- **Base de partidas** que você aponta, com **busca por posição** (dado um FEN, quais partidas
-  passaram por ali).
 - **Stockfish** consultável a qualquer momento, e **jogar contra ele** com seleção de dificuldade.
 
 Detalhe completo do plano em `dev-notes/docs/planos/localchesspgn.md`.

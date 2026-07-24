@@ -3,6 +3,7 @@ import type { GameRecord, MoveNode } from "../backend";
 import {
   endPath,
   fenAtPath,
+  findPathByFen,
   insertChildAtPath,
   nextPath,
   nodeAtPath,
@@ -144,5 +145,23 @@ describe("insertChildAtPath", () => {
     const seguida = node("Bb5");
     const { path } = insertChildAtPath(game, [0, 0, 0, 0], seguida); // filho de Nc6-main
     expect(path).toEqual([0, 0, 0, 0, 0]);
+  });
+});
+
+describe("findPathByFen", () => {
+  it("acha a posição inicial", () => {
+    expect(findPathByFen(game, "start")).toEqual([]);
+  });
+
+  it("acha um nó na mainline", () => {
+    expect(findPathByFen(game, "fen(Nf3)")).toEqual([0, 0, 0]);
+  });
+
+  it("acha um nó DENTRO de uma variante", () => {
+    expect(findPathByFen(game, "fen(Nc6-var)")).toEqual([0, 0, 1, 0]);
+  });
+
+  it("devolve null quando o FEN não está na árvore", () => {
+    expect(findPathByFen(game, "fen(nunca-jogado)")).toBeNull();
   });
 });

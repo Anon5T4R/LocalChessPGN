@@ -544,6 +544,117 @@ select:focus {
   font-style: italic;
 }
 
+.toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.btn.small.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ---------- biblioteca (F3/F3b) ---------- */
+
+.library-panel {
+  position: fixed;
+  top: 55px;
+  right: 0;
+  bottom: 0;
+  width: min(360px, 92vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  z-index: 150;
+}
+.library-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.library-head h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.library-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.library-progress-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.library-summary {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin: 0;
+}
+.library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+.library-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.library-row-main {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+.library-row-players {
+  font-weight: 500;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.library-row-meta {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.movelist-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.movelist-title-row .movelist-title {
+  margin: 0;
+}
+
+.pbar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.pbar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

@@ -69,6 +69,23 @@ const pt = {
 
   "annotate.commentPlaceholder": "Comentário deste lance…",
   "annotate.nagTitle": "Anotação {glyph}",
+
+  "library.toggle": "Biblioteca",
+  "library.title": "Biblioteca",
+  "library.close": "Fechar",
+  "library.addFiles": "Adicionar arquivos .pgn",
+  "library.cancelAdding": "Cancelar",
+  "library.addSummary": "{added} partida(s) adicionada(s), {skipped} pulada(s).",
+  "library.empty": "Nenhuma partida na biblioteca ainda. Aponte um ou mais arquivos .pgn.",
+  "library.remove": "Remover da biblioteca",
+  "library.loadMore": "Carregar mais",
+
+  "search.button": "Buscar esta posição",
+  "search.title": "Partidas com esta posição",
+  "search.back": "Voltar aos lances",
+  "search.loading": "Buscando…",
+  "search.empty": "Nenhuma partida da biblioteca passou por esta posição.",
+  "search.atPly": "lance {ply}",
 } as const;
 
 export type MessageKey = keyof typeof pt;
@@ -125,6 +142,23 @@ const en: Record<MessageKey, string> = {
 
   "annotate.commentPlaceholder": "Comment on this move…",
   "annotate.nagTitle": "Annotation {glyph}",
+
+  "library.toggle": "Library",
+  "library.title": "Library",
+  "library.close": "Close",
+  "library.addFiles": "Add .pgn files",
+  "library.cancelAdding": "Cancel",
+  "library.addSummary": "{added} game(s) added, {skipped} skipped.",
+  "library.empty": "No games in the library yet. Point at one or more .pgn files.",
+  "library.remove": "Remove from library",
+  "library.loadMore": "Load more",
+
+  "search.button": "Search this position",
+  "search.title": "Games with this position",
+  "search.back": "Back to moves",
+  "search.loading": "Searching…",
+  "search.empty": "No game in the library reached this position.",
+  "search.atPly": "move {ply}",
 };
 
 const es: Record<MessageKey, string> = {
@@ -179,6 +213,23 @@ const es: Record<MessageKey, string> = {
 
   "annotate.commentPlaceholder": "Comentario de esta jugada…",
   "annotate.nagTitle": "Anotación {glyph}",
+
+  "library.toggle": "Biblioteca",
+  "library.title": "Biblioteca",
+  "library.close": "Cerrar",
+  "library.addFiles": "Añadir archivos .pgn",
+  "library.cancelAdding": "Cancelar",
+  "library.addSummary": "{added} partida(s) añadida(s), {skipped} omitida(s).",
+  "library.empty": "Todavía no hay partidas en la biblioteca. Apunta uno o más archivos .pgn.",
+  "library.remove": "Quitar de la biblioteca",
+  "library.loadMore": "Cargar más",
+
+  "search.button": "Buscar esta posición",
+  "search.title": "Partidas con esta posición",
+  "search.back": "Volver a las jugadas",
+  "search.loading": "Buscando…",
+  "search.empty": "Ninguna partida de la biblioteca llegó a esta posición.",
+  "search.atPly": "jugada {ply}",
 };
 
 const DICTS: Record<Locale, Record<MessageKey, string>> = { pt, en, es };
