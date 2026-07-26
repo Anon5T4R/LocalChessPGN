@@ -1,6 +1,6 @@
 [package]
 name = "localchesspgn"
-version = "0.4.2"
+version = "0.4.3"
 description = "LocalChessPGN — leitor e editor de PGN, com tabuleiro e navegação de variantes, 100% offline"
 authors = ["Taylor"]
 edition = "2021"
